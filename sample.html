@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Simple Create Credential Tests</title>
+</head>
+
+<body>
+    Open developer console to see log messages.
+</body>
+<script type="text/javascript">
+console.log("Running sample code...");
+let challengeBytes = new Uint8Array(16);
+window.crypto.getRandomValues(challengeBytes);
+var createOptions = {
+    publicKey: {
+        challenge: challengeBytes,
+        // Relying Party:
+        rp: {
+            name: "Acme"
+        },
+
+        // User:
+        user: {
+            id: "1098237235409872",
+            name: "john.p.smith@example.com",
+            displayName: "John P. Smith",
+            icon: "https://pics.acme.com/00/p/aBjjjpqPb.png"
+        },
+
+        parameters: [{
+            type: "public-key",
+            algorithm: "ES256",
+        }],
+
+        timeout: 60000, // 1 minute
+        excludeList: [] // No excludeList
+    }
+};
+
+console.log ("calling navigator.credentials.create() with args:", createOptions);
+let p = navigator.credentials.create(createOptions);
+
+p.then((newCred) => {
+    console.log("create returned:", newCred);
+
+    var challengeBytes = new Uint8Array(16);
+    window.crypto.getRandomValues(challengeBytes);
+
+    var newCredential = {
+      type: "public-key",
+      id: Uint8Array.from(newCred.rawId),
+      transports: ["usb", "nfc", "ble"],
+    };
+
+    var getOptions = {
+        publicKey: {
+            challenge: challengeBytes,
+            timeout: 60000,
+            allowList: [newCredential]
+        }
+    };
+
+    console.log("calling navigator.credentials.get() with args:", getOptions);
+
+    return navigator.credentials.get(getOptions);
+}).then((ret) => {
+    console.log ("get returned:", ret);
+}).catch((err) => {
+    console.log("ERROR", err);
+});
+</script>
+
+</html>
